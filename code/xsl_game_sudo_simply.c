@@ -41,7 +41,6 @@ typedef struct
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static const uint8_t XslGameSudo_SudoBuf[XSLGAMESUDO_SUDOKU_LEVEL][XSLGAMESUDO_SUDOKU_LEVEL] = {
-	/*
 	8, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 3, 6, 0, 0, 0, 0, 0,
 	0, 7, 0, 0, 9, 0, 2, 0, 0,
@@ -51,16 +50,7 @@ static const uint8_t XslGameSudo_SudoBuf[XSLGAMESUDO_SUDOKU_LEVEL][XSLGAMESUDO_S
 	0, 0, 1, 0, 0, 0, 0, 6, 8,
 	0, 0, 8, 5, 0, 0, 0, 1, 0,
 	0, 9, 0, 0, 0, 0, 4, 0, 0
-	*/
-	0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 3, 6, 0, 0, 0, 0, 0,
-	0, 7, 0, 0, 9, 0, 2, 0, 0,
-	0, 5, 0, 0, 0, 7, 0, 0, 0,
-	0, 0, 0, 0, 4, 5, 7, 0, 0,
-	0, 0, 0, 1, 0, 0, 0, 3, 0,
-	0, 0, 1, 0, 0, 0, 0, 6, 8,
-	0, 0, 8, 5, 0, 0, 0, 1, 0,
-	0, 9, 0, 0, 0, 0, 4, 0, 0};
+	};
 //
 XSLGAMESUDO_S_SUDO XslGameSudo_s_Sudo;
 /* Extern variables ----------------------------------------------------------*/
@@ -95,13 +85,13 @@ static void XslGameSudo_FormatPrint(XSLGAMESUDO_S_SUDO *pXslGameSudoS, uint8_t m
 	// 打印答案
 	else if (mode == 1)
 	{
-		if (pXslGameSudoS->pAnswersCount == 0)
+		if (pXslGameSudoS->OutAnswersCount == 0)
 		{
 			printf("Sudo Processor : No Solution!\n");
 			return;
 		}
 		//
-		pbuf = pXslGameSudoS->pOutBuf;
+		pbuf = pXslGameSudoS->cells;
 		for (k = 0; k < pXslGameSudoS->OutAnswersCount; k++)
 		{
 			printf("Sudo Answers(%d):\n", k + 1);
@@ -114,10 +104,6 @@ static void XslGameSudo_FormatPrint(XSLGAMESUDO_S_SUDO *pXslGameSudoS, uint8_t m
 						printf("\n");
 				}
 			}
-		}
-		if (pXslGameSudoS->pAnswersCount != NULL)
-		{
-			printf("Sudo Answers Count: %d\n", *(pXslGameSudoS->pAnswersCount));
 		}
 	}
 }
@@ -208,38 +194,8 @@ static int XslGameSudo_Cal(XSLGAMESUDO_S_SUDO *pXslGameSudoS, uint8_t row, uint8
 		//如果9宫格已填满
 		if (ERR == XslGameSudo_findNextEmpty(pXslGameSudoS, row, &next_row, &next_col))
 		{
-			//多解计数
-			if (pXslGameSudoS->pAnswersCount != NULL)
-			{
-				*(pXslGameSudoS->pAnswersCount) += 1;
-			}
-			//多解输出处理
-			if ((pXslGameSudoS->OutAnswersCount < pXslGameSudoS->MaxOutAnswersCount) && (pXslGameSudoS->pOutBuf != NULL))
-			{
-				//-----记录数据
-				memcpy((char *)(&pXslGameSudoS->pOutBuf[pXslGameSudoS->OutAnswersCount * XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL]), (char *)(pXslGameSudoS->cells), XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
-				pXslGameSudoS->OutAnswersCount++;
-				//-----
-				if ((pXslGameSudoS->OutAnswersCount >= pXslGameSudoS->MaxOutAnswersCount) && (pXslGameSudoS->pAnswersCount == NULL))
-				{
-					return OK;
-				}
-				else
-				{
-					pXslGameSudoS->cells[row][col] = 0;
-					goto next_num;
-				}
-			}
-			//多解计数
-			if (pXslGameSudoS->pAnswersCount == NULL)
-			{
-				return OK;
-			}
-			else
-			{
-				pXslGameSudoS->cells[row][col] = 0;
-				goto next_num;
-			}
+			pXslGameSudoS->OutAnswersCount=1;
+			return OK;
 		}
 		//-----------------------3,向下一个空单元填数
 		if (ERR == XslGameSudo_Cal(pXslGameSudoS, next_row, next_col))
@@ -275,25 +231,6 @@ void XslGameSudo_Processor(XSLGAMESUDO_S_SUDO *pXslGameSudoS)
 	XslGameSudo_Cal(pXslGameSudoS, row, col);
 }
 /**
- * @brief   数独生成
- * @note    数独生成，列出数独变换的各种方法，随机变换生成。
- * @param   *pXslGameSudoS	---	数独结构体指针
- * @return  null
- */
-uint8_t XslGameSudo_Generate(XSLGAMESUDO_S_SUDO *pXslGameSudoS)
-{
-	// 生成种子数独
-	// 两数交换法
-	// 非跨界行交换
-	// 非跨界列交换
-	// 块行交换
-	// 块列交换
-	// 矩阵旋转
-	// 矩阵行镜像
-	// 矩阵列镜像
-	// 矩阵对角线镜像
-}
-/**
  * @brief   main函数
  * @note    主函数入口
  * @param   null
@@ -306,13 +243,13 @@ void main(int argc, char **argv)
 	uint8_t res;
 	uint32_t time1, time2;
 	printf("--------------------------------------------------\n");
-	printf("             XSL Sudo Processor(Normal)           \n");
+	printf("               XSL Sudo Processor(simply)         \n");
 	printf("--------------------------------------------------\n");
 	// 数据载入
 	memcpy((uint8_t *)(XslGameSudo_s_Sudo.cells), (uint8_t *)&XslGameSudo_SudoBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
 	// 设置配置
 	//---最多解析10个解
-	XslGameSudo_s_Sudo.MaxOutAnswersCount = 5;
+	XslGameSudo_s_Sudo.MaxOutAnswersCount = 0;
 	XslGameSudo_s_Sudo.pOutBuf = MemBuf;
 	XslGameSudo_s_Sudo.pAnswersCount = &SudoCount;
 	// 打印原始数独

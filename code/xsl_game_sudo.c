@@ -6,8 +6,6 @@
   * @date    2018/11/01
   ******************************************************************************
   * @attention
-  * 待解决
-  * 1,数独出题
   * GNU General Public License (GPL)
   *
   * <h2><center>&copy; COPYRIGHT 2017 XSLXHN</center></h2>
@@ -41,7 +39,7 @@ typedef struct
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static const uint8_t XslGameSudo_SudoBuf[XSLGAMESUDO_SUDOKU_LEVEL][XSLGAMESUDO_SUDOKU_LEVEL] = {
-	/*
+
 	8, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 3, 6, 0, 0, 0, 0, 0,
 	0, 7, 0, 0, 9, 0, 2, 0, 0,
@@ -51,7 +49,8 @@ static const uint8_t XslGameSudo_SudoBuf[XSLGAMESUDO_SUDOKU_LEVEL][XSLGAMESUDO_S
 	0, 0, 1, 0, 0, 0, 0, 6, 8,
 	0, 0, 8, 5, 0, 0, 0, 1, 0,
 	0, 9, 0, 0, 0, 0, 4, 0, 0
-	*/
+
+	/*
 	0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 3, 6, 0, 0, 0, 0, 0,
 	0, 7, 0, 0, 9, 0, 2, 0, 0,
@@ -60,7 +59,19 @@ static const uint8_t XslGameSudo_SudoBuf[XSLGAMESUDO_SUDOKU_LEVEL][XSLGAMESUDO_S
 	0, 0, 0, 1, 0, 0, 0, 3, 0,
 	0, 0, 1, 0, 0, 0, 0, 6, 8,
 	0, 0, 8, 5, 0, 0, 0, 1, 0,
-	0, 9, 0, 0, 0, 0, 4, 0, 0};
+	0, 9, 0, 0, 0, 0, 4, 0, 0
+	*/
+};
+static const uint8_t XslGameSudo_SudoGenerateBuf[XSLGAMESUDO_SUDOKU_LEVEL][XSLGAMESUDO_SUDOKU_LEVEL] = {
+	8, 1, 2, 7, 5, 3, 6, 4, 9,
+	9, 4, 3, 6, 8, 2, 1, 7, 5,
+	6, 7, 5, 4, 9, 1, 2, 8, 3,
+	1, 5, 4, 2, 3, 7, 8, 9, 6,
+	3, 6, 9, 8, 4, 5, 7, 2, 1,
+	2, 8, 7, 1, 6, 9, 5, 3, 4,
+	5, 2, 1, 9, 7, 4, 3, 6, 8,
+	4, 3, 8, 5, 2, 6, 9, 1, 7,
+	7, 9, 6, 3, 1, 8, 4, 5, 2};
 //
 XSLGAMESUDO_S_SUDO XslGameSudo_s_Sudo;
 /* Extern variables ----------------------------------------------------------*/
@@ -70,7 +81,7 @@ XSLGAMESUDO_S_SUDO XslGameSudo_s_Sudo;
  * @brief   格式化打印
  * @note    打印指定行列的数组
  * @param   *pXslGameSudoS	---	数据指针
- * 			mode			---	0-打印问题	1-打印答案
+ * 			mode			---	0-打印问题	1-打印答案 2-只打印数独不打印字符串
  * @return  null
  */
 static void XslGameSudo_FormatPrint(XSLGAMESUDO_S_SUDO *pXslGameSudoS, uint8_t mode)
@@ -78,9 +89,12 @@ static void XslGameSudo_FormatPrint(XSLGAMESUDO_S_SUDO *pXslGameSudoS, uint8_t m
 	uint8_t i, j, k;
 	uint8_t *pbuf;
 	// 打印问题
-	if (mode == 0)
+	if ((mode == 0) || (mode == 2))
 	{
-		printf("Sudo Questions:\n");
+		if (mode == 0)
+		{
+			printf("Sudo Questions:\n");
+		}
 		pbuf = (uint8_t *)pXslGameSudoS->cells;
 		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL; i++)
 		{
@@ -282,16 +296,227 @@ void XslGameSudo_Processor(XSLGAMESUDO_S_SUDO *pXslGameSudoS)
  */
 uint8_t XslGameSudo_Generate(XSLGAMESUDO_S_SUDO *pXslGameSudoS)
 {
+	uint8_t num = 1;
 	// 生成种子数独
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
 	// 两数交换法
+	{
+		uint8_t commutation_data_1, commutation_data_2;
+		uint8_t i;
+		uint8_t *pbuf = pXslGameSudoS->cells;
+		// 设定交换数
+		commutation_data_1 = 2;
+		commutation_data_2 = 8;
+		// 执行数据交换
+		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL; i++)
+		{
+			if (pbuf[i] == commutation_data_1)
+			{
+				pbuf[i] = commutation_data_2;
+			}
+			else if (pbuf[i] == commutation_data_2)
+			{
+				pbuf[i] = commutation_data_1;
+			}
+			else
+			{
+				;
+			}
+		}
+	}
+	printf("Point Exchange method sudoku(point:2,8):\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
 	// 非跨界行交换
+	{
+		uint8_t commutation_row_1, commutation_row_2;
+		uint8_t i, temp;
+		// 设定交换行(0-8有效)
+		commutation_row_1 = 0;
+		commutation_row_2 = 2;
+		// 执行交换行
+		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL; i++)
+		{
+			temp = pXslGameSudoS->cells[commutation_row_1][i];
+			pXslGameSudoS->cells[commutation_row_1][i] = pXslGameSudoS->cells[commutation_row_2][i];
+			pXslGameSudoS->cells[commutation_row_2][i] = temp;
+		}
+	}
+	printf("Row Exchange method sudoku(row:1,3):\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
 	// 非跨界列交换
+	{
+		uint8_t commutation_col_1, commutation_col_2;
+		uint8_t i, temp;
+		// 设定交换行(0-8有效)
+		commutation_col_1 = 0;
+		commutation_col_2 = 2;
+		// 执行交换行
+		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL; i++)
+		{
+			temp = pXslGameSudoS->cells[i][commutation_col_1];
+			pXslGameSudoS->cells[i][commutation_col_1] = pXslGameSudoS->cells[i][commutation_col_2];
+			pXslGameSudoS->cells[i][commutation_col_2] = temp;
+		}
+	}
+	printf("Col Exchange method sudoku(col:1,3):\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
 	// 块行交换
+	{
+		uint8_t commutation_blockrow_1, commutation_blockrow_2;
+		uint8_t i, j, temp;
+		// 设定交换行(0-2有效)
+		commutation_blockrow_1 = 0;
+		commutation_blockrow_2 = 1;
+		// 执行交换行
+		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL; i++)
+		{
+			for (j = 0; j < 3; j++)
+			{
+				temp = pXslGameSudoS->cells[commutation_blockrow_1 * 3 + j][i];
+				pXslGameSudoS->cells[commutation_blockrow_1 * 3 + j][i] = pXslGameSudoS->cells[commutation_blockrow_2 * 3 + j][i];
+				pXslGameSudoS->cells[commutation_blockrow_2 * 3 + j][i] = temp;
+			}
+		}
+	}
+	printf("Block Row Exchange method sudoku(Block Row:1,2):\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
 	// 块列交换
-	// 矩阵旋转
+	{
+		uint8_t commutation_blockrow_1, commutation_blockrow_2;
+		uint8_t i, j, temp;
+		// 设定交换行(0-2有效)
+		commutation_blockrow_1 = 0;
+		commutation_blockrow_2 = 1;
+		// 执行交换行
+		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL; i++)
+		{
+			for (j = 0; j < 3; j++)
+			{
+				temp = pXslGameSudoS->cells[i][commutation_blockrow_1 * 3 + j];
+				pXslGameSudoS->cells[i][commutation_blockrow_1 * 3 + j] = pXslGameSudoS->cells[i][commutation_blockrow_2 * 3 + j];
+				pXslGameSudoS->cells[i][commutation_blockrow_2 * 3 + j] = temp;
+			}
+		}
+	}
+	printf("Block Col Exchange method sudoku(Block Col:1,2):\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	// 矩阵旋转(下面是方形矩阵的自旋转程序(不用额外缓存))
+	{
+		uint8_t i, j, k, n, x;
+		uint8_t temp1, temp2;
+		//设置参数
+		n = XSLGAMESUDO_SUDOKU_LEVEL;
+		x = n / 2;
+		// 一圈一圈处理
+		k = n - 1;
+		for (i = 0; i < x; i++)
+		{
+			for (j = 0; j < k; j++)
+			{
+				//右列
+				temp1 = pXslGameSudoS->cells[i + j][n - 1 - i];
+				pXslGameSudoS->cells[i + j][n - 1 - i] = pXslGameSudoS->cells[i][i + j];
+				//下行
+				temp2 = pXslGameSudoS->cells[n - 1 - i][n - 1 - i - j];
+				pXslGameSudoS->cells[n - 1 - i][n - 1 - i - j] = temp1;
+				//左列
+				temp1 = pXslGameSudoS->cells[n - 1 - i - j][i];
+				pXslGameSudoS->cells[n - 1 - i - j][i] = temp2;
+				//左上
+				pXslGameSudoS->cells[i][i + j] = temp1;
+			}
+			k -= 2;
+		}
+	}
+	printf("Rotate method sudoku(90 degrees):\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
 	// 矩阵行镜像
+	{
+		uint8_t i, j;
+		uint8_t temp;
+		//
+		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL / 2; i++)
+		{
+			for (j = 0; j < XSLGAMESUDO_SUDOKU_LEVEL; j++)
+			{
+				temp = pXslGameSudoS->cells[j][XSLGAMESUDO_SUDOKU_LEVEL - 1 - i];
+				pXslGameSudoS->cells[j][XSLGAMESUDO_SUDOKU_LEVEL - 1 - i] = pXslGameSudoS->cells[j][i];
+				pXslGameSudoS->cells[j][i] = temp;
+			}
+		}
+	}
+	printf("X Mirror sudoku:\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
 	// 矩阵列镜像
+	{
+		uint8_t i, j;
+		uint8_t temp;
+		//
+		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL / 2; i++)
+		{
+			for (j = 0; j < XSLGAMESUDO_SUDOKU_LEVEL; j++)
+			{
+				temp = pXslGameSudoS->cells[XSLGAMESUDO_SUDOKU_LEVEL - 1 - i][j];
+				pXslGameSudoS->cells[XSLGAMESUDO_SUDOKU_LEVEL - 1 - i][j] = pXslGameSudoS->cells[i][j];
+				pXslGameSudoS->cells[i][j] = temp;
+			}
+		}
+	}
+	printf("Y Mirror sudoku:\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
+	memcpy((uint8_t *)(pXslGameSudoS->cells), (uint8_t *)&XslGameSudo_SudoGenerateBuf[0][0], XSLGAMESUDO_SUDOKU_LEVEL * XSLGAMESUDO_SUDOKU_LEVEL);
+	printf("%d,----------Seeds sudoku:\n", num++);
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
 	// 矩阵对角线镜像
+	{
+		uint8_t i, j;
+		uint8_t temp;
+		for (i = 0; i < XSLGAMESUDO_SUDOKU_LEVEL - 1; i++)
+		{
+			for (j = 0; j < XSLGAMESUDO_SUDOKU_LEVEL - 1 - i; j++)
+			{
+				temp = pXslGameSudoS->cells[i + j + 1][i];
+				pXslGameSudoS->cells[i + j + 1][i] = pXslGameSudoS->cells[i][i + j + 1];
+				pXslGameSudoS->cells[i][i + j + 1] = temp;
+			}
+		}
+	}
+	printf("Transpose sudoku:\n");
+	XslGameSudo_FormatPrint(pXslGameSudoS, 2);
+	//----------
 }
 /**
  * @brief   main函数
@@ -305,6 +530,12 @@ void main(int argc, char **argv)
 {
 	uint8_t res;
 	uint32_t time1, time2;
+	printf("--------------------------------------------------\n");
+	printf("             XSL Sudo Generate(Normal)            \n");
+	printf("--------------------------------------------------\n");
+	XslGameSudo_Generate(&XslGameSudo_s_Sudo);
+	while (1)
+		;
 	printf("--------------------------------------------------\n");
 	printf("             XSL Sudo Processor(Normal)           \n");
 	printf("--------------------------------------------------\n");
